@@ -14,6 +14,8 @@ router.get("/goldrate", controller.goldRate);
 router.post("/buy", controller.buyGold);
 //get buy list
 router.get("/buylist", controller.buyList);
+//get buy list
+router.get("/balance", controller.getBalanceDetails);
 //POST sell request
 router.post("/sell", controller.sellGold);
 //get sell list

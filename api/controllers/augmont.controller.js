@@ -85,6 +85,38 @@ exports.sellList = async (req, res, next) => {
   }
 };
 
+exports.getBalanceDetails = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  try {
+    if (authHeader) {
+      const usertoken = authHeader.split(" ")[1];
+
+      jwt.verify(usertoken, process.env.TOKEN_SECRET, (err, user) => {
+        if (err) {
+          return res.sendStatus(403);
+        } else {
+          const uniqueId = user._id;
+          User.findOne({ _id: uniqueId }, async (err, foundUser) => {
+            if (!foundUser) {
+              res.send("User not found");
+            } else {
+              res.json({
+                totalAmount: foundUser.totalAmount,
+                goldBalance: foundUser.goldBalance,
+              });
+            }
+          });
+        }
+      });
+    } else {
+      res.sendStatus(401);
+    }
+  } catch (error) {
+    console.log(error);
+    next();
+  }
+};
+
 exports.createUser = async (req, res, next) => {
   const unique_id = uuidv4();
   var data = new FormData();
@@ -276,7 +308,7 @@ exports.buyGold = async (req, res, next) => {
             const user = await User.findById(id).exec();
             const newAmount = (
               parseFloat(user.totalAmount) +
-              parseFloat(response.data.result.data.totalAmount)
+              parseFloat(response.data.result.data.preTaxAmount)
             ).toFixed(2);
 
             await User.findByIdAndUpdate(id, {
