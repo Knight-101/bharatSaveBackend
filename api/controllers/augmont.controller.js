@@ -2,6 +2,7 @@ const User = require("../models/User");
 const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const FormData = require("form-data");
+const jwt = require("jsonwebtoken");
 const Buy = require("../models/Buy");
 var qs = require("qs");
 const Sell = require("../models/Sell");
@@ -86,42 +87,41 @@ exports.sellList = async (req, res, next) => {
 
 exports.createUser = async (req, res, next) => {
   const unique_id = uuidv4();
+  var data = new FormData();
+  data.append("mobileNumber", req.body.mobileNumber);
+  data.append("emailId", req.body.emailId);
+  data.append("uniqueId", unique_id);
+  data.append("userName", req.body.userName);
+  data.append("userPincode", req.body.userPincode);
+
+  var config = {
+    method: "post",
+    url: `${process.env.AUGMONT_URL}/merchant/v1/users`,
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...data.getHeaders(),
+    },
+    data: data,
+  };
   try {
-    var data = new FormData();
-    data.append("mobileNumber", req.body.mobileNumber);
-    data.append("emailId", req.body.email);
-    data.append("uniqueId", unique_id);
-    data.append("userName", req.body.userName);
-    data.append("userPincode", req.body.pincode);
-
-    var config = {
-      method: "post",
-      url: `${process.env.AUGMONT_URL}/merchant/v1/users`,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...data.getHeaders(),
-      },
-      data: data,
-    };
-
-    await axios(config)
-      .then(async (response) => {
-        console.log(response.data);
-        await User.findOne(
-          { mobileNumber: req.body.mobileNumber },
-          async (err, foundUser) => {
-            if (foundUser) {
-              res.send("User already exists");
-            } else {
+    await User.findOne(
+      { mobileNumber: req.body.mobileNumber },
+      async (err, foundUser) => {
+        if (foundUser) {
+          res.send("User already exists");
+        } else {
+          await axios(config)
+            .then(async (response) => {
+              console.log(response.data.message);
               //create a user
               const user = new User({
                 _id: unique_id,
                 mobileNumber: req.body.mobileNumber,
-                emailId: req.body.email,
+                emailId: req.body.emailId,
                 userName: req.body.userName,
-                userPincode: req.body.pincode,
+                userPincode: req.body.userPincode,
               });
               try {
                 await user.save();
@@ -137,13 +137,13 @@ exports.createUser = async (req, res, next) => {
               } catch (error) {
                 console.log(error);
               }
-            }
-          }
-        );
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
+      }
+    );
   } catch (error) {
     console.log(error);
     next();
@@ -173,6 +173,27 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.log(error);
     next();
+  }
+};
+
+exports.isAuth = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  try {
+    if (authHeader) {
+      const usertoken = authHeader.split(" ")[1];
+
+      jwt.verify(usertoken, process.env.TOKEN_SECRET, (err, user) => {
+        if (err) {
+          return res.sendStatus(403);
+        } else {
+          return res.sendStatus(200);
+        }
+      });
+    } else {
+      res.sendStatus(401);
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -216,19 +237,19 @@ exports.goldRate = async (req, res, next) => {
 
 exports.buyGold = async (req, res, next) => {
   const merchantTransactionId = uuidv4();
-  const authHeader = req.headers.Authorization;
+  const authHeader = req.headers.authorization;
 
   if (authHeader) {
-    const token = authHeader.split(" ")[1];
+    const usertoken = authHeader.split(" ")[1];
 
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+    jwt.verify(usertoken, process.env.TOKEN_SECRET, (err, user) => {
       if (err) {
         return res.sendStatus(403);
       }
       const uniqueId = user._id;
       try {
         var data = new FormData();
-        data.append("lockPrice", req.body.lockPrice);
+        data.append("lockPrice", req.body.buyPrice);
         data.append("metalType", "gold");
         data.append("amount", req.body.amount);
         data.append("merchantTransactionId", merchantTransactionId);
@@ -262,7 +283,7 @@ exports.buyGold = async (req, res, next) => {
               totalAmount: newAmount,
               goldBalance: response.data.result.data.goldBalance,
             });
-            res.status(200).json({ ok: 1 });
+            res.sendStatus(200);
           })
           .catch(function (error) {
             console.log(error);
@@ -270,8 +291,6 @@ exports.buyGold = async (req, res, next) => {
       } catch (error) {
         console.log(error);
       }
-
-      next();
     });
   } else {
     res.sendStatus(401);
@@ -281,7 +300,7 @@ exports.buyGold = async (req, res, next) => {
 
 exports.sellGold = async (req, res, next) => {
   const merchantTransactionId = uuidv4();
-  const authHeader = req.headers.Authorization;
+  const authHeader = req.headers.authorization;
 
   if (authHeader) {
     const token = authHeader.split(" ")[1];
@@ -347,7 +366,7 @@ exports.sellGold = async (req, res, next) => {
 };
 
 exports.bankCreate = async (req, res, next) => {
-  const authHeader = req.headers.Authorization;
+  const authHeader = req.headers.authorization;
 
   if (authHeader) {
     const token = authHeader.split(" ")[1];

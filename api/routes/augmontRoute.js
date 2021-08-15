@@ -18,5 +18,7 @@ router.get("/buylist", controller.buyList);
 router.post("/sell", controller.sellGold);
 //get sell list
 router.get("/selllist", controller.sellList);
+// check if authenticated
+router.get("/isAuth", controller.isAuth);
 
 module.exports = router;

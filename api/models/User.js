@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userState: {
+  userPincode: {
     type: String,
     required: true,
   },
