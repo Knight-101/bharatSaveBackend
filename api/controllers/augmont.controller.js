@@ -165,7 +165,15 @@ exports.createUser = async (req, res, next) => {
                   }
                 );
 
-                res.json({ ok: 1, token: appToken });
+                res.json({
+                  ok: 1,
+                  token: appToken,
+                  userData: {
+                    mobileNumber: req.body.mobileNumber,
+                    emailId: req.body.emailId,
+                    userName: req.body.userName,
+                  },
+                });
               } catch (error) {
                 console.log(error);
               }
@@ -198,7 +206,14 @@ exports.login = async (req, res) => {
               expiresIn: "3hr",
             }
           );
-          res.json({ token: apptoken });
+          res.json({
+            token: apptoken,
+            userData: {
+              mobileNumber: foundUser.mobileNumber,
+              emailId: foundUser.emailId,
+              userName: foundUser.userName,
+            },
+          });
         }
       }
     );
