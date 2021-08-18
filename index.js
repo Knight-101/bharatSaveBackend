@@ -1,7 +1,7 @@
-const bodyParser = require("body-parser");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const logger = require("morgan");
 const augmontRoutes = require("./api/routes/augmontRoute");
 
 dotenv.config();
@@ -11,7 +11,8 @@ require("./config/mongoose.js");
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(logger("dev"));
 //handled CORS
 app.use((req, res, next) => {
   res.set("Access-Control-Allow-Origin", "*");

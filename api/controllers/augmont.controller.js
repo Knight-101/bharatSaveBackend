@@ -1,10 +1,10 @@
 const User = require("../models/User");
-const axios = require("axios");
+const axios = require("axios").default;
 const { v4: uuidv4 } = require("uuid");
 const FormData = require("form-data");
 const jwt = require("jsonwebtoken");
 const Buy = require("../models/Buy");
-var qs = require("qs");
+const qs = require("qs");
 const Sell = require("../models/Sell");
 
 const token =
@@ -98,7 +98,7 @@ exports.getBalanceDetails = async (req, res, next) => {
           const uniqueId = user._id;
           User.findOne({ _id: uniqueId }, async (err, foundUser) => {
             if (!foundUser) {
-              res.send("User not found");
+              res.status(404).send("User not found");
             } else {
               res.json({
                 totalAmount: foundUser.totalAmount,
@@ -142,7 +142,7 @@ exports.createUser = async (req, res, next) => {
       { mobileNumber: req.body.mobileNumber },
       async (err, foundUser) => {
         if (foundUser) {
-          res.send("User already exists");
+          res.status(500).send("User already exists");
         } else {
           await axios(config)
             .then(async (response) => {
@@ -197,7 +197,7 @@ exports.login = async (req, res) => {
       { mobileNumber: req.body.mobileNumber },
       async (err, foundUser) => {
         if (!foundUser) {
-          res.send("User not found");
+          res.status(404).send("User not found");
         } else {
           const apptoken = jwt.sign(
             { _id: foundUser._id },
