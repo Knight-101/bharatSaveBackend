@@ -28,6 +28,6 @@ app.use((req, res, next) => {
 app.use("/augmont", augmontRoutes);
 
 //server listening on port
-app.listen(process.env.PORT || 8000, function () {
-  console.log("server started on port 8000");
+app.listen(process.env.PORT || 80, function () {
+  console.log("server started on port 80");
 });
