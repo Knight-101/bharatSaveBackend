@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const logger = require("morgan");
 const augmontRoutes = require("./api/routes/augmontRoute");
+const userRoutes = require("./api/routes/userRoute");
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 
 // set up routes
 app.use("/augmont", augmontRoutes);
+app.use("/user", userRoutes);
 
 //server listening on port
 app.listen(process.env.PORT || 80, function () {
