@@ -1,10 +1,10 @@
 const User = require("../models/User");
-const axios = require("axios");
+const axios = require("axios").default;
 const { v4: uuidv4 } = require("uuid");
 const FormData = require("form-data");
 const jwt = require("jsonwebtoken");
 const Buy = require("../models/Buy");
-var qs = require("qs");
+const qs = require("qs");
 const Sell = require("../models/Sell");
 
 const token =
@@ -98,7 +98,7 @@ exports.getBalanceDetails = async (req, res, next) => {
           const uniqueId = user._id;
           User.findOne({ _id: uniqueId }, async (err, foundUser) => {
             if (!foundUser) {
-              res.send("User not found");
+              res.status(404).send("User not found");
             } else {
               res.json({
                 totalAmount: foundUser.totalAmount,
@@ -142,7 +142,7 @@ exports.createUser = async (req, res, next) => {
       { mobileNumber: req.body.mobileNumber },
       async (err, foundUser) => {
         if (foundUser) {
-          res.send("User already exists");
+          res.status(500).send("User already exists");
         } else {
           await axios(config)
             .then(async (response) => {
@@ -161,7 +161,7 @@ exports.createUser = async (req, res, next) => {
                   { _id: unique_id },
                   process.env.TOKEN_SECRET,
                   {
-                    expiresIn: "3hr",
+                    expiresIn: "7d",
                   }
                 );
 
@@ -197,13 +197,13 @@ exports.login = async (req, res) => {
       { mobileNumber: req.body.mobileNumber },
       async (err, foundUser) => {
         if (!foundUser) {
-          res.send("User not found");
+          res.status(404).send("User not found");
         } else {
           const apptoken = jwt.sign(
             { _id: foundUser._id },
             process.env.TOKEN_SECRET,
             {
-              expiresIn: "3hr",
+              expiresIn: "7d",
             }
           );
           res.json({
@@ -292,51 +292,52 @@ exports.buyGold = async (req, res, next) => {
     jwt.verify(usertoken, process.env.TOKEN_SECRET, (err, user) => {
       if (err) {
         return res.sendStatus(403);
-      }
-      const uniqueId = user._id;
-      try {
-        var data = new FormData();
-        data.append("lockPrice", req.body.buyPrice);
-        data.append("metalType", "gold");
-        data.append("amount", req.body.amount);
-        data.append("merchantTransactionId", merchantTransactionId);
-        data.append("uniqueId", uniqueId);
-        data.append("blockId", req.body.blockId);
+      } else {
+        const uniqueId = user._id;
+        try {
+          var data = new FormData();
+          data.append("lockPrice", req.body.buyPrice);
+          data.append("metalType", "gold");
+          data.append("amount", req.body.amount);
+          data.append("merchantTransactionId", merchantTransactionId);
+          data.append("uniqueId", uniqueId);
+          data.append("blockId", req.body.blockId);
 
-        var config = {
-          method: "post",
-          url: `${process.env.AUGMONT_URL}/merchant/v1/buy`,
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            ...data.getHeaders(),
-          },
-          data: data,
-        };
+          var config = {
+            method: "post",
+            url: `${process.env.AUGMONT_URL}/merchant/v1/buy`,
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              ...data.getHeaders(),
+            },
+            data: data,
+          };
 
-        axios(config)
-          .then(async function (response) {
-            const id = response.data.result.data.uniqueId;
-            const newBuy = new Buy(response.data.result.data);
-            await newBuy.save();
-            const user = await User.findById(id).exec();
-            const newAmount = (
-              parseFloat(user.totalAmount) +
-              parseFloat(response.data.result.data.preTaxAmount)
-            ).toFixed(2);
+          axios(config)
+            .then(async function (response) {
+              const id = response.data.result.data.uniqueId;
+              const newBuy = new Buy(response.data.result.data);
+              await newBuy.save();
+              const user = await User.findById(id).exec();
+              const newAmount = (
+                parseFloat(user.totalAmount) +
+                parseFloat(response.data.result.data.preTaxAmount)
+              ).toFixed(2);
 
-            await User.findByIdAndUpdate(id, {
-              totalAmount: newAmount,
-              goldBalance: response.data.result.data.goldBalance,
+              await User.findByIdAndUpdate(id, {
+                totalAmount: newAmount,
+                goldBalance: response.data.result.data.goldBalance,
+              });
+              res.sendStatus(200);
+            })
+            .catch(function (error) {
+              console.log(error);
             });
-            res.sendStatus(200);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      } catch (error) {
-        console.log(error);
+        } catch (error) {
+          console.log(error);
+        }
       }
     });
   } else {
@@ -355,55 +356,56 @@ exports.sellGold = async (req, res, next) => {
     jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
       if (err) {
         return res.sendStatus(403);
-      }
-      const uniqueId = user._id;
-      try {
-        var data = new FormData();
-        data.append("uniqueId", uniqueId);
-        data.append("mobileNumber", req.body.mobileNumber);
-        data.append("lockPrice", req.body.lockPrice);
-        data.append("blockId", req.body.blockId);
-        data.append("metalType", "gold");
-        data.append("amount", req.body.amount);
-        data.append("merchantTransactionId", merchantTransactionId);
-        data.append("userBank[userBankId]", req.body.userBankId);
+      } else {
+        const uniqueId = user._id;
+        try {
+          var data = new FormData();
+          data.append("uniqueId", uniqueId);
+          data.append("mobileNumber", req.body.mobileNumber);
+          data.append("lockPrice", req.body.lockPrice);
+          data.append("blockId", req.body.blockId);
+          data.append("metalType", "gold");
+          data.append("amount", req.body.amount);
+          data.append("merchantTransactionId", merchantTransactionId);
+          data.append("userBank[userBankId]", req.body.userBankId);
 
-        var config = {
-          method: "post",
-          url: `${process.env.AUGMONT_URL}/merchant/v1/sell`,
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-            ...data.getHeaders(),
-          },
-          data: data,
-        };
+          var config = {
+            method: "post",
+            url: `${process.env.AUGMONT_URL}/merchant/v1/sell`,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+              ...data.getHeaders(),
+            },
+            data: data,
+          };
 
-        axios(config)
-          .then(async function (response) {
-            const id = response.data.result.data.uniqueId;
-            const newSell = new Sell(response.data.result.data);
-            await newSell.save();
-            const user = await User.findById(id).exec();
-            const newAmount = (
-              parseFloat(user.totalAmount) -
-              parseFloat(response.data.result.data.totalAmount)
-            ).toFixed(2);
+          axios(config)
+            .then(async function (response) {
+              const id = response.data.result.data.uniqueId;
+              const newSell = new Sell(response.data.result.data);
+              await newSell.save();
+              const user = await User.findById(id).exec();
+              const newAmount = (
+                parseFloat(user.totalAmount) -
+                parseFloat(response.data.result.data.totalAmount)
+              ).toFixed(2);
 
-            await User.findByIdAndUpdate(id, {
-              totalAmount: newAmount,
-              goldBalance: response.data.result.data.goldBalance,
+              await User.findByIdAndUpdate(id, {
+                totalAmount: newAmount,
+                goldBalance: response.data.result.data.goldBalance,
+              });
+
+              res.status(200).json({ ok: 1 });
+            })
+            .catch(function (error) {
+              console.log(error);
             });
-
-            res.status(200).json({ ok: 1 });
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      } catch (error) {
-        console.log(error);
-        next();
+        } catch (error) {
+          console.log(error);
+          next();
+        }
       }
     });
   } else {
@@ -421,40 +423,43 @@ exports.bankCreate = async (req, res, next) => {
     jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
       if (err) {
         return res.sendStatus(403);
-      }
-      const uniqueId = user._id;
-      try {
-        var data = qs.stringify({
-          accountNumber: req.body.accountNumber,
-          accountName: req.body.accountName,
-          ifscCode: req.body.ifscCode,
-        });
-        var config = {
-          method: "post",
-          url: `${process.env.AUGMONT_URL}/merchant/v1/users/${uniqueId}/banks`,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          data: data,
-        };
-
-        axios(config)
-          .then(async function (response) {
-            const id = response.data.result.data.uniqueId;
-            const filter = { _id: id };
-            const update = { $push: { userBanks: response.data.result.data } };
-
-            await User.findOneAndUpdate(filter, update);
-
-            res.status(200).json({ ok: 1 });
-          })
-          .catch(function (error) {
-            console.log(error);
+      } else {
+        const uniqueId = user._id;
+        try {
+          var data = qs.stringify({
+            accountNumber: req.body.accountNumber,
+            accountName: req.body.accountName,
+            ifscCode: req.body.ifscCode,
           });
-      } catch (error) {
-        console.log(error);
-        next();
+          var config = {
+            method: "post",
+            url: `${process.env.AUGMONT_URL}/merchant/v1/users/${uniqueId}/banks`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data: data,
+          };
+
+          axios(config)
+            .then(async function (response) {
+              const id = response.data.result.data.uniqueId;
+              const filter = { _id: id };
+              const update = {
+                $push: { userBanks: response.data.result.data },
+              };
+
+              await User.findOneAndUpdate(filter, update);
+
+              res.status(200).json({ ok: 1 });
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        } catch (error) {
+          console.log(error);
+          next();
+        }
       }
     });
   } else {

@@ -1,0 +1,8 @@
+{
+  "appService.zipIgnorePattern": [
+    "node_modules{,/**}",
+    ".vscode{,/**}"
+  ],
+  "appService.defaultWebAppToDeploy": "/subscriptions/b1c9ac9f-3524-45e6-a972-a798470ca476/resourceGroups/BharatSave/providers/Microsoft.Web/sites/BharatSave",
+  "appService.deploySubpath": "."
+}
