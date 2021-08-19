@@ -1,10 +1,19 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs")
+const https = require("https")
+const http = require("http")
 const dotenv = require("dotenv");
 const augmontRoutes = require("./api/routes/augmontRoute");
 
 dotenv.config();
+
+var options = {
+  key: fs.readFileSync(process.env.PRIV_KEY),
+  cert: fs.readFileSync(process.env.CERT),
+  ca: fs.readFileSync(process.env.CHAIN)
+};
 
 // require db
 require("./config/mongoose.js");
@@ -27,7 +36,8 @@ app.use((req, res, next) => {
 // set up routes
 app.use("/augmont", augmontRoutes);
 
-//server listening on port
-app.listen(process.env.PORT || 8000, function () {
-  console.log("server started on port 8000");
-});
+
+// var httpServer = http.createServer(app);
+var httpsServer = https.createServer(options, app);
+
+httpsServer.listen(443);
