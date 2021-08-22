@@ -34,6 +34,38 @@ exports.getUserDetails = async (req, res, next) => {
     }
 };
 
+exports.getBalanceDetails = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    try {
+      if (authHeader) {
+        const usertoken = authHeader.split(" ")[1];
+  
+        jwt.verify(usertoken, process.env.TOKEN_SECRET, (err, user) => {
+          if (err) {
+            return res.sendStatus(403);
+          } else {
+            const uniqueId = user._id;
+            User.findOne({ _id: uniqueId }, async (err, foundUser) => {
+              if (!foundUser) {
+                res.status(404).send("User not found");
+              } else {
+                res.json({
+                  totalAmount: foundUser.totalAmount,
+                  goldBalance: foundUser.goldBalance,
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.sendStatus(401);
+      }
+    } catch (error) {
+      console.log(error);
+      next();
+    }
+  };
+
 exports.getBankDetails = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     try {
