@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const axios = require("axios").default;
-const { v4: uuidv4 } = require("uuid");
+const { nanoid } = require("nanoid");
 const FormData = require("form-data");
 const jwt = require("jsonwebtoken");
 const Buy = require("../models/Buy");
@@ -86,7 +86,7 @@ exports.sellList = async (req, res, next) => {
 };
 
 exports.createUser = async (req, res, next) => {
-  const unique_id = uuidv4();
+  const unique_id = nanoid();
   var data = new FormData();
   data.append("mobileNumber", req.body.mobileNumber);
   data.append("emailId", req.body.emailId);
@@ -251,7 +251,7 @@ exports.goldRate = async (req, res, next) => {
 };
 
 exports.buyGold = async (req, res, next) => {
-  const merchantTransactionId = uuidv4();
+  const merchantTransactionId = nanoid();
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
@@ -315,7 +315,7 @@ exports.buyGold = async (req, res, next) => {
 };
 
 exports.sellGold = async (req, res, next) => {
-  const merchantTransactionId = uuidv4();
+  const merchantTransactionId = nanoid();
   const authHeader = req.headers.authorization;
 
   if (authHeader) {

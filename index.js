@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const logger = require("morgan");
 const augmontRoutes = require("./api/routes/augmontRoute");
 const userRoutes = require("./api/routes/userRoute");
+const paytmRoutes = require("./api/routes/paytmRoute");
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 
 // set up routes
 app.use("/augmont", augmontRoutes);
+app.use("/paytm", paytmRoutes);
 app.use("/user", userRoutes);
 
 //server listening on port
