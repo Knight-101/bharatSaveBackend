@@ -1,19 +1,20 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs")
-const https = require("https")
-const http = require("http")
+const fs = require("fs");
+const https = require("https");
+const http = require("http");
 const dotenv = require("dotenv");
 const logger = require("morgan");
 const augmontRoutes = require("./api/routes/augmontRoute");
 const userRoutes = require("./api/routes/userRoute");
+const newUserMsg = require("./Whatsapp/newUser");
 
 dotenv.config();
 
 var options = {
   key: fs.readFileSync(process.env.PRIV_KEY),
   cert: fs.readFileSync(process.env.CERT),
-  ca: fs.readFileSync(process.env.CHAIN)
+  ca: fs.readFileSync(process.env.CHAIN),
 };
 
 // require db
@@ -38,7 +39,7 @@ app.use((req, res, next) => {
 // set up routes
 app.use("/augmont", augmontRoutes);
 app.use("/user", userRoutes);
-
+app.use("/webhook", newUserMsg.newAccFunc);
 
 // var httpServer = http.createServer(app);
 var httpsServer = https.createServer(options, app);
