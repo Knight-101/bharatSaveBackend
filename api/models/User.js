@@ -25,9 +25,31 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  totalAmount: { type: String },
-  goldBalance: { type: String },
-
+  totalAmount: {
+    type: String,
+    default: "0"
+  },
+  goldBalance: {
+    type: String,
+    default: "0"
+  },
+  activePlans: [
+    {
+      subscriptionId: {
+        type: String,
+        required: true
+      },
+      planName: {
+        type: String,
+        enum: ["Round Up", "Daily Savings", "Weekly Savings", "Monthly Savings"],
+        required: true
+      },
+      active: {
+        type: Boolean,
+        default: false
+      }
+    }
+  ],
   userBanks: [
     {
       userBankId: { type: String },
@@ -39,11 +61,7 @@ const userSchema = new mongoose.Schema({
       ifscCode: { type: String },
       status: { type: String },
     },
-  ],
-  // Name: {
-  //   type: String,
-  //   required: true,
-  // },
+  ]
 });
 
 module.exports = mongoose.model("User", userSchema);
