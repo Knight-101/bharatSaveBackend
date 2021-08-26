@@ -25,8 +25,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  totalAmount: { type: String },
-  goldBalance: { type: String },
+  totalAmount: {
+    type: String,
+    default: "0"
+  },
+  goldBalance: {
+    type: String,
+    default: "0"
+  },
   activePlans: [
     {
       subscriptionId: {
@@ -36,8 +42,7 @@ const userSchema = new mongoose.Schema({
       planName: {
         type: String,
         enum: ["Round Up", "Daily Savings", "Weekly Savings", "Monthly Savings"],
-        required: true,
-        unique: true
+        required: true
       },
       active: {
         type: Boolean,
