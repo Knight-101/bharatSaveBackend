@@ -261,15 +261,31 @@ exports.buyGold = async (req, res, next) => {
       if (err) {
         return res.sendStatus(403);
       } else {
+
+        if (req.body.amount != null && req.body.quantity != null) {
+          return res.status(400).json({
+            error: 'Only one of amount or quantity is allowed'
+          });
+        }
+
         const uniqueId = user._id;
         try {
           var data = new FormData();
           data.append("lockPrice", req.body.buyPrice);
           data.append("metalType", "gold");
-          data.append("amount", req.body.amount);
           data.append("merchantTransactionId", merchantTransactionId);
           data.append("uniqueId", uniqueId);
           data.append("blockId", req.body.blockId);
+          
+          if (req.body.amount != null) {
+            data.append("amount", req.body.amount);
+          } else if (req.body.quantity != null) {
+            data.append("quantity", req.body.quantity);
+          } else {
+            return res.status(400).json({
+              error: 'Amount or quantity is required'
+            });
+          }
 
           var config = {
             method: "post",

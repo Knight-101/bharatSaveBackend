@@ -51,6 +51,7 @@ exports.initiateTransaction = async (req, res, next) => {
                     return res.json({
                         orderId,
                         mid: process.env.PAYTM_MID,
+                        amount: req.body.amount,
                         token: response.data.body.txnToken
                     });
                 } else {
@@ -98,6 +99,7 @@ exports.checkTransactionStatus = async (req, res, next) => {
                         bankTxnId: response.data.body.bankTxnId,
                         txnAmount: response.data.body.txnAmount,
                         txnDate: response.data.body.txnDate,
+                        status: response.data.body.resultInfo.resultStatus,
                         message: response.data.body.resultInfo.resultMsg
                     });
                 } else {
