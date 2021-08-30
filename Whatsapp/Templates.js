@@ -1,5 +1,5 @@
 exports.interactiveButton = {
-  to: "916264524404",
+  to: "",
   type: "interactive",
   interactive: {
     type: "button",
@@ -21,12 +21,12 @@ exports.interactiveButtonTemplate = {
 };
 
 exports.interactiveRowTemplate = {
-  id: "12345",
-  title: "BUY",
-  description: "Buy Gold",
+  id: "",
+  title: "",
+  description: "",
 };
 exports.interactiveSectionTemplate = {
-  title: "gold",
+  title: "",
   rows: [],
 };
 
@@ -47,9 +47,17 @@ exports.interactiveList = {
 
 exports.textMessage = {
   recipient_type: "individual",
-  to: "916264524404",
+  to: "",
   type: "text",
   text: {
     body: "Hello, Sanskar!",
   },
+};
+
+exports.userData = {
+  userName: "",
+  mobileNumber: "",
+  uniqueId: "",
+  userPincode: "",
+  emailId: "",
 };
