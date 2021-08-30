@@ -154,7 +154,7 @@ exports.createUser = async (req, res, next) => {
     );
   } catch (error) {
     console.log(error);
-    next();
+    next(error);
   }
 };
 
@@ -187,7 +187,7 @@ exports.login = async (req, res) => {
     );
   } catch (error) {
     console.log(error);
-    next();
+    next(error);
   }
 };
 
@@ -243,6 +243,7 @@ exports.goldRate = async (req, res, next) => {
       })
       .catch((error) => {
         console.log(error);
+        next(error);
       });
   } catch (error) {
     console.log(error);
@@ -251,7 +252,6 @@ exports.goldRate = async (req, res, next) => {
 };
 
 exports.buyGold = async (req, res, next) => {
-  const merchantTransactionId = nanoid();
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
@@ -273,7 +273,7 @@ exports.buyGold = async (req, res, next) => {
           var data = new FormData();
           data.append("lockPrice", req.body.buyPrice);
           data.append("metalType", "gold");
-          data.append("merchantTransactionId", merchantTransactionId);
+          data.append("merchantTransactionId", req.body.transactionId);
           data.append("uniqueId", uniqueId);
           data.append("blockId", req.body.blockId);
           
@@ -314,12 +314,16 @@ exports.buyGold = async (req, res, next) => {
                 totalAmount: newAmount,
                 goldBalance: response.data.result.data.goldBalance,
               });
-              res.sendStatus(200);
+              res.status(200).json({
+                totalAmount: newAmount,
+                goldBalance: response.data.result.data.goldBalance
+              });
             })
             .catch(function (error) {
               console.log(error);
             });
         } catch (error) {
+          next(error);
           console.log(error);
         }
       }
@@ -388,7 +392,7 @@ exports.sellGold = async (req, res, next) => {
             });
         } catch (error) {
           console.log(error);
-          next();
+          next(errors);
         }
       }
     });
@@ -442,7 +446,7 @@ exports.bankCreate = async (req, res, next) => {
             });
         } catch (error) {
           console.log(error);
-          next();
+          next(error);
         }
       }
     });
